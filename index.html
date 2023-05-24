@@ -1,27 +1,65 @@
-<!--
-<!DOCTYPE html>
--->
+<html>
+	<head>
+		<title>My First ForerunnerDB Todo App</title>
+	</head>
+	<body>
+		<!-- Include the whole forerunner system, bells, whistles and kitchen sink -->
+		<script type="application/javascript" src="js/dist/fdb-all.min.js"></script>
 
-<title>
-	
-</title>
+		<!-- Create a DB instance and store it globally -->
+		<script type="application/javascript">
+			window.fdb = new ForerunnerDB();
+			db = fdb.db('test');
 
-<head>
-	<style>
-		body {
-  font-family: system-ui;
-  background: #f06d06;
-  color: white;
-  text-align: center;
-}
-	</style>
-	<meta charset="utf-8">
-</head>
+			// Ask forerunner to load any persistent data previously
+			// saved for this collection
+			db.collection('todo').load();
+		</script>
 
-<body>
-  <h1>👋 Hello World!</h1>
-</body>
+		<!-- Define a todo item template -->
+		<script type="text/x-jsrender" id="todoItem">
+			<li data-link="id{:_id}">
+				<span>{^{:text}}</span>
+			</li>
+		</script>
 
-<script>
-	document.getElementsByTagName("h1")[0].style.fontSize = "6vw";
-</script>
+		<!-- Create an element where our todo items will be output -->
+		<ul id="todoList"></ul>
+
+		<!-- Create our item entry form -->
+		<form id="todoForm">
+			<input id="todoText" type="text" placeholder="Enter todo item" />
+			<input type="submit" value="Add Item" />
+		</form>
+
+		<!-- Use jQuery to hook the onsubmit of our form -->
+		<script type="application/javascript">
+			$('#todoForm').on('submit', function (e) {
+				e.preventDefault();
+
+				// Get the form's todo item text
+				var itemText = $('#todoText').val();
+
+				// Add the new item to ForerunnerDB's todo collection
+				db.collection('todo').insert({
+					text: itemText
+				});
+
+				// Now we've added the item to the collection, tell
+				// forerunner to persist the data
+				db.collection('todo').save();
+			});
+			
+			$('body').on('click', '#todoList li', function () {
+				// Get the item id for the todo item clicked on
+				db.collection('todo').remove({_id: $(this).attr('id')});
+				db.collection('todo').save();
+			});
+		</script>
+
+		<!-- Finally we tell forerunner to data-bind the collection to the todo list -->
+		<script type="application/javascript">
+			db.collection('todo').link('#todoList', '#todoItem');
+		</script>
+	</body>
+</html>
